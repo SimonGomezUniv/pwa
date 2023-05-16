@@ -26,9 +26,18 @@ webpush.setVapidDetails(
   vapidKeys.privateKey
 );
 
+
+
+
 var subscriptions = []
+
+if(fs.existsSync("subscriptions.json")){
+    subscriptions = JSON.parse(fs.readFileSync("subscriptions.json"))
+}
+
 function saveSubscription(subscription){
     subscriptions.push(subscription)
+    fs.writeFileSync("subscriptions.json",JSON.stringify(subscriptions))
 }
 
 function getSubscriptionFromDatabase(){
@@ -59,18 +68,16 @@ app.get('/sub',(req,res)=>{
 // Route pour déclencher l'envoi d'une notification
 app.get('/send', (req, res) => {
     // Récupérez l'abonnement à partir de votre base de données ou d'une autre source
-    const subscription = getSubscriptionFromDatabase(); // Remplacez cette fonction par votre propre logique de récupération de l'abonnement
-  
 
-    console.log(subscription)
-    if (subscription) {
+    subscriptions.forEach(subscription => {
+        console.log(subscription)
         console.log("sending")
-      const payload = JSON.stringify({ title: 'Notification déclenchée depuis le serveur' });
-  
-      webpush.sendNotification(subscription, payload).catch(error => {
-        console.error('Erreur lors de l\'envoi de la notification:', error);
-      });
-    }
+        const payload = JSON.stringify({ title: 'Notification déclenchée depuis le serveur' });
+    
+        webpush.sendNotification(subscription, payload).catch(error => {
+            console.error('Erreur lors de l\'envoi de la notification:', error);
+        });
+    })
   
     res.status(200).json({});
   });
